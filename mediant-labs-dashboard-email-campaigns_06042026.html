@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mediant Labs — Email Campaign Report | June 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --green:#21a866; --blue:#2189bd; --orange:#f0883e; --red:#f85149;
+  --purple:#a371f7; --teal:#39d0d8; --gold:#e3b341; --pink:#f778ba;
+  --bg:#0d1117; --surface:#161b22; --border:#21262d;
+  --text:#e6edf3; --muted:#8b949e;
+}
+body.light {
+  --bg:#f6f8fa; --surface:#ffffff; --border:#d0d7de;
+  --text:#1f2328; --muted:#656d76;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Google Sans',sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;}
+.logo{font-size:20px;font-weight:700;}
+.logo span:first-child{color:var(--green);}
+.logo span:last-child{color:var(--blue);}
+.header-center{font-size:14px;font-weight:500;color:var(--muted);text-align:center;}
+.header-center strong{color:var(--text);display:block;font-size:16px;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.badge{font-size:12px;background:var(--border);color:var(--muted);padding:4px 10px;border-radius:20px;}
+.btn{padding:7px 16px;border-radius:8px;border:none;font-family:'Google Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .2s;}
+.btn:hover{opacity:.85;}
+.btn-ghost{background:var(--border);color:var(--text);}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;}
+.theme-toggle{width:36px;height:36px;background:var(--border);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);}
+
+.main{padding:28px;max-width:1500px;margin:0 auto;}
+
+/* SECTION TITLE */
+.section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;margin-top:32px;}
+.section-title:first-of-type{margin-top:0;}
+
+/* SUMMARY KPI STRIP — 4 cards */
+.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+@media(max-width:900px){.summary-strip{grid-template-columns:repeat(2,1fr);}}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;}
+.sum-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--blue));opacity:.5;}
+.sum-card .sc-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;}
+.sum-card .sc-val{font-size:30px;font-weight:700;}
+.sum-card .sc-sub{font-size:12px;margin-top:6px;color:var(--muted);}
+.delta-up{color:var(--green);}
+.delta-down{color:var(--red);}
+.delta-warn{color:var(--orange);}
+
+/* INDUSTRY CARDS — 3 col */
+.ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px;}
+@media(max-width:1100px){.ind-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.ind-grid{grid-template-columns:1fr;}}
+
+.ind-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;}
+.ind-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.ind-card.energy::before{background:linear-gradient(90deg,#f0883e,#f85149);}
+.ind-card.mfg::before{background:linear-gradient(90deg,var(--green),var(--blue));}
+.ind-card.mining::before{background:linear-gradient(90deg,var(--gold),#c9952a);}
+
+.ind-pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+.energy .ind-pill{background:rgba(240,136,62,.15);color:var(--orange);}
+.mfg .ind-pill{background:rgba(33,168,102,.15);color:var(--green);}
+.mining .ind-pill{background:rgba(227,179,65,.15);color:var(--gold);}
+
+.ind-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.ind-date{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.ind-subject{font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:16px;font-style:italic;}
+
+/* 3x3 metric grid */
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.metric-box{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 10px;text-align:center;}
+.metric-box .mv{font-size:17px;font-weight:700;margin-bottom:1px;}
+.metric-box .ml{font-size:10px;color:var(--muted);line-height:1.3;}
+.mv.c-green{color:var(--green);}
+.mv.c-blue{color:var(--blue);}
+.mv.c-orange{color:var(--orange);}
+.mv.c-red{color:var(--red);}
+.mv.c-purple{color:var(--purple);}
+.mv.c-gold{color:var(--gold);}
+.mv.c-teal{color:var(--teal);}
+.mv.c-muted{color:var(--muted);}
+
+/* LEAD BANNER */
+.lead-banner{border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid;}
+.energy .lead-banner{background:rgba(33,168,102,.06);border-color:rgba(33,168,102,.3);}
+.mfg .lead-banner{background:rgba(33,137,189,.06);border-color:rgba(33,137,189,.3);}
+.mining .lead-banner{background:rgba(227,179,65,.06);border-color:rgba(227,179,65,.3);}
+.lb-text{font-size:11px;color:var(--muted);line-height:1.5;}
+.lb-text strong{color:var(--text);font-size:12px;display:block;margin-bottom:2px;}
+.lb-num{font-size:32px;font-weight:700;white-space:nowrap;}
+.energy .lb-num{color:var(--green);}
+.mfg .lb-num{color:var(--blue);}
+.mining .lb-num{color:var(--gold);}
+.lb-sub{font-size:10px;color:var(--muted);}
+
+/* FUNNEL SECTION */
+.funnel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px;}
+@media(max-width:1100px){.funnel-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.funnel-grid{grid-template-columns:1fr;}}
+
+.funnel-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.funnel-head{font-size:13px;font-weight:700;margin-bottom:3px;}
+.funnel-sub-label{font-size:11px;color:var(--muted);margin-bottom:16px;}
+
+.fstep{display:flex;align-items:center;gap:10px;margin-bottom:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);}
+.fstep-ico{font-size:14px;width:22px;text-align:center;flex-shrink:0;}
+.fstep-body{flex:1;min-width:0;}
+.fstep-label{font-size:11px;font-weight:600;color:var(--text);}
+.fstep-count{font-size:16px;font-weight:700;margin:1px 0;}
+.fstep-bar{height:4px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden;}
+.fstep-bar-fill{height:100%;border-radius:2px;}
+.fstep-pct{font-size:11px;color:var(--muted);flex-shrink:0;text-align:right;min-width:38px;}
+.farrow{text-align:center;color:var(--muted);font-size:11px;margin:2px 0;}
+
+.fstep-lead{border-color:rgba(33,168,102,.35)!important;background:rgba(33,168,102,.05);}
+.fstep-lead-mfg{border-color:rgba(33,137,189,.35)!important;background:rgba(33,137,189,.05);}
+.fstep-lead-mining{border-color:rgba(227,179,65,.35)!important;background:rgba(227,179,65,.05);}
+
+.fnotes{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;}
+.fnote-val{font-size:14px;font-weight:700;}
+.fnote-lab{font-size:10px;color:var(--muted);}
+
+/* CHARTS */
+.charts-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:28px;}
+@media(max-width:1100px){.charts-grid-2,.charts-grid-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.charts-grid-2,.charts-grid-3{grid-template-columns:1fr;}}
+
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.chart-card.span2{grid-column:1/-1;}
+.chart-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.chart-wrap{position:relative;height:220px;}
+.chart-wrap-tall{position:relative;height:280px;}
+
+/* ENGAGEMENT */
+.eng-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px;}
+@media(max-width:1100px){.eng-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.eng-grid{grid-template-columns:1fr;}}
+.eng-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;}
+.eng-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:2px;}
+.eng-title{font-size:14px;font-weight:700;margin-bottom:16px;}
+.ebar-row{margin-bottom:11px;}
+.ebar-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.ebar-header span:first-child{color:var(--text);font-weight:500;}
+.ebar-header span:last-child{color:var(--muted);}
+.ebar-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.ebar-fill{height:100%;border-radius:4px;}
+
+/* TABLE */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:28px;overflow-x:auto;}
+.table-title{font-size:14px;font-weight:700;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;padding:0 10px 10px;border-bottom:1px solid var(--border);}
+td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(33,168,102,.03);}
+.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.tag-e{background:rgba(240,136,62,.15);color:var(--orange);}
+.tag-m{background:rgba(33,168,102,.15);color:var(--green);}
+.tag-mm{background:rgba(227,179,65,.15);color:var(--gold);}
+.mini-bar-wrap{display:flex;align-items:center;gap:6px;font-size:11px;}
+.mini-bar{width:50px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.mini-bar-fill{height:100%;border-radius:3px;}
+
+/* INSIGHT */
+.insight-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:28px;}
+.insight-box h3{font-size:13px;font-weight:700;color:var(--green);margin-bottom:14px;}
+.insight-list{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.insight-list li{font-size:12px;color:var(--text);padding-left:16px;position:relative;line-height:1.5;}
+.insight-list li::before{content:'→';position:absolute;left:0;color:var(--green);}
+
+/* NOTE BOX */
+.note-box{background:rgba(33,137,189,.07);border:1px solid rgba(33,137,189,.25);border-radius:10px;padding:12px 16px;margin-bottom:28px;font-size:12px;color:var(--muted);line-height:1.6;}
+.note-box strong{color:var(--blue);}
+
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);}
+@media print{.header-right,.theme-toggle{display:none;}body{background:#fff;color:#000;}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo"><span>Mediant</span><span>Labs</span></div>
+  <div class="header-center">
+    <strong>Email Campaign Performance Report</strong>
+    Energy · Manufacturing · Metal &amp; Mining — June 2026
+  </div>
+  <div class="header-right">
+    <span class="badge">June 2026</span>
+    <span class="badge">3 Industries</span>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <button class="btn btn-ghost" onclick="window.print()">🖨 Print</button>
+    <button class="btn btn-primary" onclick="exportPNG()">↓ Export PNG</button>
+  </div>
+</div>
+
+<div class="main" id="dashMain">
+
+  <!-- NOTE -->
+  <div class="note-box">
+    <strong>ℹ Note on Unmailable:</strong> Unmailable contacts include <strong>Blocked emails</strong>, <strong>Soft Bounces</strong>, and <strong>Hard Bounces</strong>. &nbsp;·&nbsp; <strong>Both Unsubscribed and Unmailable contacts have been removed from the list</strong> and will not be included in any future campaign sends.
+  </div>
+
+  <!-- SUMMARY KPI STRIP -->
+  <div class="section-title">Combined Summary — All 3 Industries</div>
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sc-label">Total Emails Sent</div>
+      <div class="sc-val" data-target="2983" data-suffix="" data-dec="0">0</div>
+      <div class="sc-sub">Energy 667 · Mfg 1,999 · Mining 317</div>
+    </div>
+    <div class="sum-card">
+      <div class="sc-label">Total Leads Generated 🎯</div>
+      <div class="sc-val delta-up" data-target="155" data-suffix="" data-dec="0">0</div>
+      <div class="sc-sub">Energy 25 · Mfg 86 · Mining 44</div>
+    </div>
+    <div class="sum-card">
+      <div class="sc-label">Total Unsubscribed</div>
+      <div class="sc-val delta-down" data-target="1283" data-suffix="" data-dec="0">0</div>
+      <div class="sc-sub delta-warn">⚠ List hygiene required</div>
+    </div>
+    <div class="sum-card">
+      <div class="sc-label">Total Unmailable</div>
+      <div class="sc-val delta-warn" data-target="285" data-suffix="" data-dec="0">0</div>
+      <div class="sc-sub">Blocked · Soft &amp; Hard Bounce</div>
+    </div>
+  </div>
+
+  <!-- INDUSTRY CARDS -->
+  <div class="section-title">Campaign Overview — By Industry</div>
+  <div class="ind-grid">
+
+    <!-- ENERGY -->
+    <div class="ind-card energy">
+      <div class="ind-pill">⚡ Energy</div>
+      <div class="ind-name">Energy Industry</div>
+      <div class="ind-date">01 Jun 2026 · 4:07 PM</div>
+      <div class="ind-subject">"92% of Energy Leaders Say Reskilling Is a Competitive Advantage"</div>
+      <div class="metric-grid">
+        <div class="metric-box"><div class="mv c-green" data-target="99.25" data-suffix="%" data-dec="2">0</div><div class="ml">Delivery Rate</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="46.37" data-suffix="%" data-dec="2">0</div><div class="ml">Open Rate</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="7.49" data-suffix="%" data-dec="2">0</div><div class="ml">Click-to-Open</div></div>
+        <div class="metric-box"><div class="mv c-green" data-target="667" data-suffix="" data-dec="0">0</div><div class="ml">Total Sent</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="383" data-suffix="" data-dec="0">0</div><div class="ml">Mailable</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="307" data-suffix="" data-dec="0">0</div><div class="ml">Unique Opens</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="355" data-suffix="" data-dec="0">0</div><div class="ml">Unopened</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="310" data-suffix="" data-dec="0">0</div><div class="ml">Unsubscribed</div></div>
+        <div class="metric-box"><div class="mv c-purple" data-target="72" data-suffix="" data-dec="0">0</div><div class="ml">Unmailable</div></div>
+      </div>
+      <div class="lead-banner">
+        <div class="lb-text"><strong>🎯 Interested → Lead</strong>Clicked &amp; did not unsubscribe</div>
+        <div style="text-align:right">
+          <div class="lb-num" data-target="25" data-suffix="" data-dec="0">0</div>
+          <div class="lb-sub">Leads</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANUFACTURING -->
+    <div class="ind-card mfg">
+      <div class="ind-pill">🏭 Manufacturing</div>
+      <div class="ind-name">Manufacturing Industry</div>
+      <div class="ind-date">02 Jun 2026 · 4:40 PM</div>
+      <div class="ind-subject">"From Manuals to Machines – Modernize Learning with Smart Systems"</div>
+      <div class="metric-grid">
+        <div class="metric-box"><div class="mv c-green" data-target="98.25" data-suffix="%" data-dec="2">0</div><div class="ml">Delivery Rate</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="37.68" data-suffix="%" data-dec="2">0</div><div class="ml">Open Rate</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="5.00" data-suffix="%" data-dec="2">0</div><div class="ml">Click-to-Open</div></div>
+        <div class="metric-box"><div class="mv c-green" data-target="1999" data-suffix="" data-dec="0">0</div><div class="ml">Total Sent</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="1181" data-suffix="" data-dec="0">0</div><div class="ml">Mailable</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="740" data-suffix="" data-dec="0">0</div><div class="ml">Unique Opens</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="1224" data-suffix="" data-dec="0">0</div><div class="ml">Unopened</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="864" data-suffix="" data-dec="0">0</div><div class="ml">Unsubscribed</div></div>
+        <div class="metric-box"><div class="mv c-purple" data-target="194" data-suffix="" data-dec="0">0</div><div class="ml">Unmailable</div></div>
+      </div>
+      <div class="lead-banner">
+        <div class="lb-text"><strong>🎯 Interested → Lead</strong>Clicked &amp; did not unsubscribe</div>
+        <div style="text-align:right">
+          <div class="lb-num" data-target="86" data-suffix="" data-dec="0">0</div>
+          <div class="lb-sub">Leads</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METAL & MINING -->
+    <div class="ind-card mining">
+      <div class="ind-pill">⛏ Metal &amp; Mining</div>
+      <div class="ind-name">Metal &amp; Mining Industry</div>
+      <div class="ind-date">03 Jun 2026 · 3:02 PM</div>
+      <div class="ind-subject">"Cut Safety Incidents and Skills Gaps Without Pulling Teams Offsite"</div>
+      <div class="metric-grid">
+        <div class="metric-box"><div class="mv c-green" data-target="98.11" data-suffix="%" data-dec="2">0</div><div class="ml">Delivery Rate</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="47.27" data-suffix="%" data-dec="2">0</div><div class="ml">Open Rate</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="7.48" data-suffix="%" data-dec="2">0</div><div class="ml">Click-to-Open</div></div>
+        <div class="metric-box"><div class="mv c-gold" data-target="317" data-suffix="" data-dec="0">0</div><div class="ml">Total Sent</div></div>
+        <div class="metric-box"><div class="mv c-blue" data-target="205" data-suffix="" data-dec="0">0</div><div class="ml">Mailable</div></div>
+        <div class="metric-box"><div class="mv c-orange" data-target="147" data-suffix="" data-dec="0">0</div><div class="ml">Unique Opens</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="164" data-suffix="" data-dec="0">0</div><div class="ml">Unopened</div></div>
+        <div class="metric-box"><div class="mv c-red" data-target="109" data-suffix="" data-dec="0">0</div><div class="ml">Unsubscribed</div></div>
+        <div class="metric-box"><div class="mv c-purple" data-target="19" data-suffix="" data-dec="0">0</div><div class="ml">Unmailable</div></div>
+      </div>
+      <div class="lead-banner">
+        <div class="lb-text"><strong>🎯 Interested → Lead</strong>Clicked &amp; did not unsubscribe</div>
+        <div style="text-align:right">
+          <div class="lb-num" data-target="44" data-suffix="" data-dec="0">0</div>
+          <div class="lb-sub">Leads</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIENCE FUNNELS -->
+  <div class="section-title">Full Audience Funnel — Sent to Lead</div>
+  <div class="funnel-grid">
+
+    <!-- ENERGY FUNNEL -->
+    <div class="funnel-card">
+      <div class="funnel-head">⚡ Energy Industry</div>
+      <div class="funnel-sub-label">667 emails sent · Jun 01</div>
+      <div class="fstep"><div class="fstep-ico">📤</div><div class="fstep-body"><div class="fstep-label">Total Sent</div><div class="fstep-count" style="color:var(--green)">667</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:100%;background:var(--green)"></div></div></div><div class="fstep-pct">100%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">✅</div><div class="fstep-body"><div class="fstep-label">Delivered</div><div class="fstep-count" style="color:var(--blue)">662</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:99.25%;background:var(--blue)"></div></div></div><div class="fstep-pct">99.25%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">📬</div><div class="fstep-body"><div class="fstep-label">Opened (Unique)</div><div class="fstep-count" style="color:var(--orange)">307</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:46%;background:var(--orange)"></div></div></div><div class="fstep-pct">46.03%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">🖱</div><div class="fstep-body"><div class="fstep-label">Clicked (Unique)</div><div class="fstep-count" style="color:var(--purple)">23</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:3.45%;background:var(--purple)"></div></div></div><div class="fstep-pct">3.45%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep fstep-lead"><div class="fstep-ico">🎯</div><div class="fstep-body"><div class="fstep-label" style="color:var(--green)">Interested → Lead</div><div class="fstep-count" style="color:var(--green)">25</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:3.75%;background:var(--green)"></div></div></div><div class="fstep-pct" style="color:var(--green)">3.75%</div></div>
+      <div class="fnotes">
+        <div><div class="fnote-val" style="color:var(--red)">355</div><div class="fnote-lab">Unopened</div></div>
+        <div><div class="fnote-val" style="color:var(--red)">310</div><div class="fnote-lab">Unsubscribed</div></div>
+        <div><div class="fnote-val" style="color:var(--purple)">72</div><div class="fnote-lab">Unmailable</div></div>
+      </div>
+    </div>
+
+    <!-- MFG FUNNEL -->
+    <div class="funnel-card">
+      <div class="funnel-head">🏭 Manufacturing Industry</div>
+      <div class="funnel-sub-label">1,999 emails sent · Jun 02</div>
+      <div class="fstep"><div class="fstep-ico">📤</div><div class="fstep-body"><div class="fstep-label">Total Sent</div><div class="fstep-count" style="color:var(--green)">1,999</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:100%;background:var(--green)"></div></div></div><div class="fstep-pct">100%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">✅</div><div class="fstep-body"><div class="fstep-label">Delivered</div><div class="fstep-count" style="color:var(--blue)">1,964</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:98.25%;background:var(--blue)"></div></div></div><div class="fstep-pct">98.25%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">📬</div><div class="fstep-body"><div class="fstep-label">Opened (Unique)</div><div class="fstep-count" style="color:var(--orange)">740</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:37%;background:var(--orange)"></div></div></div><div class="fstep-pct">37.02%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">🖱</div><div class="fstep-body"><div class="fstep-label">Clicked (Unique)</div><div class="fstep-count" style="color:var(--purple)">37</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:1.85%;background:var(--purple)"></div></div></div><div class="fstep-pct">1.85%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep fstep-lead-mfg"><div class="fstep-ico">🎯</div><div class="fstep-body"><div class="fstep-label" style="color:var(--blue)">Interested → Lead</div><div class="fstep-count" style="color:var(--blue)">86</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:4.3%;background:var(--blue)"></div></div></div><div class="fstep-pct" style="color:var(--blue)">4.30%</div></div>
+      <div class="fnotes">
+        <div><div class="fnote-val" style="color:var(--red)">1,224</div><div class="fnote-lab">Unopened</div></div>
+        <div><div class="fnote-val" style="color:var(--red)">864</div><div class="fnote-lab">Unsubscribed</div></div>
+        <div><div class="fnote-val" style="color:var(--purple)">194</div><div class="fnote-lab">Unmailable</div></div>
+      </div>
+    </div>
+
+    <!-- MINING FUNNEL -->
+    <div class="funnel-card">
+      <div class="funnel-head">⛏ Metal &amp; Mining Industry</div>
+      <div class="funnel-sub-label">317 emails sent · Jun 03</div>
+      <div class="fstep"><div class="fstep-ico">📤</div><div class="fstep-body"><div class="fstep-label">Total Sent</div><div class="fstep-count" style="color:var(--gold)">317</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:100%;background:var(--gold)"></div></div></div><div class="fstep-pct">100%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">✅</div><div class="fstep-body"><div class="fstep-label">Delivered</div><div class="fstep-count" style="color:var(--blue)">311</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:98.11%;background:var(--blue)"></div></div></div><div class="fstep-pct">98.11%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">📬</div><div class="fstep-body"><div class="fstep-label">Opened (Unique)</div><div class="fstep-count" style="color:var(--orange)">147</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:46.37%;background:var(--orange)"></div></div></div><div class="fstep-pct">46.37%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep"><div class="fstep-ico">🖱</div><div class="fstep-body"><div class="fstep-label">Clicked (Unique)</div><div class="fstep-count" style="color:var(--purple)">11</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:3.54%;background:var(--purple)"></div></div></div><div class="fstep-pct">3.54%</div></div>
+      <div class="farrow">↓</div>
+      <div class="fstep fstep-lead-mining"><div class="fstep-ico">🎯</div><div class="fstep-body"><div class="fstep-label" style="color:var(--gold)">Interested → Lead</div><div class="fstep-count" style="color:var(--gold)">44</div><div class="fstep-bar"><div class="fstep-bar-fill" style="width:13.88%;background:var(--gold)"></div></div></div><div class="fstep-pct" style="color:var(--gold)">13.88%</div></div>
+      <div class="fnotes">
+        <div><div class="fnote-val" style="color:var(--red)">164</div><div class="fnote-lab">Unopened</div></div>
+        <div><div class="fnote-val" style="color:var(--red)">109</div><div class="fnote-lab">Unsubscribed</div></div>
+        <div><div class="fnote-val" style="color:var(--purple)">19</div><div class="fnote-lab">Unmailable</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="section-title">Performance Charts</div>
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Open Rate &amp; Click-to-Open by Industry</div>
+      <div class="chart-sub">HTML Open Rate % vs Click-to-Open % — all 3 campaigns</div>
+      <div class="chart-wrap"><canvas id="openRateChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Lead Conversion Rate</div>
+      <div class="chart-sub">Leads generated as % of total sent — by industry</div>
+      <div class="chart-wrap"><canvas id="leadRateChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Full Volume Funnel — All 3 Industries</div>
+      <div class="chart-sub">Sent → Delivered → Opened → Clicked → Lead</div>
+      <div class="chart-wrap-tall"><canvas id="volumeChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Audience Outcome Breakdown (Combined 2,983)</div>
+      <div class="chart-sub">Where did every contact across all 3 campaigns end up?</div>
+      <div class="chart-wrap-tall"><canvas id="outcomeChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 3 -->
+  <div class="charts-grid-3">
+    <div class="chart-card">
+      <div class="chart-title">⚡ Energy — Audience Split</div>
+      <div class="chart-sub">667 contacts categorised</div>
+      <div class="chart-wrap"><canvas id="splitEnergy"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏭 Manufacturing — Audience Split</div>
+      <div class="chart-sub">1,999 contacts categorised</div>
+      <div class="chart-wrap"><canvas id="splitMfg"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">⛏ Metal &amp; Mining — Audience Split</div>
+      <div class="chart-sub">317 contacts categorised</div>
+      <div class="chart-wrap"><canvas id="splitMining"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ENGAGEMENT QUALITY -->
+  <div class="section-title">Opened Email Engagement Quality</div>
+  <div class="eng-grid">
+    <div class="eng-card">
+      <div class="eng-label">⚡ Energy Industry</div>
+      <div class="eng-title">Of 307 Openers</div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Read (25%)</span><span>~77 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:25%;background:var(--orange)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Skimmed (73%)</span><span>~224 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:73%;background:var(--green)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Glanced / Unread (2%)</span><span>~6 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:2%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+    <div class="eng-card">
+      <div class="eng-label">🏭 Manufacturing Industry</div>
+      <div class="eng-title">Of 740 Openers</div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Read (36%)</span><span>~266 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:36%;background:var(--orange)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Skimmed (59%)</span><span>~437 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:59%;background:var(--green)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Glanced / Unread (6%)</span><span>~44 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:6%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+    <div class="eng-card">
+      <div class="eng-label">⛏ Metal &amp; Mining Industry</div>
+      <div class="eng-title">Of 147 Openers</div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Read (16%)</span><span>~24 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:16%;background:var(--orange)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Skimmed (84%)</span><span>~123 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:84%;background:var(--gold)"></div></div>
+      </div>
+      <div class="ebar-row">
+        <div class="ebar-header"><span>Glanced / Unread (0%)</span><span>0 contacts</span></div>
+        <div class="ebar-track"><div class="ebar-fill" style="width:0%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINK TABLE -->
+  <div class="section-title">Link Click Performance</div>
+  <div class="table-card">
+    <div class="table-title">🔗 All Link Clicks Across 3 Campaigns</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Destination URL</th><th>Industry</th>
+          <th>Unique Clicks</th><th>Total Clicks</th><th>Click Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- ENERGY -->
+        <tr><td>mediantlabs.com/about-mediant-labs.html</td><td><span class="tag tag-e">Energy</span></td><td>18</td><td>19</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:78%;background:var(--orange)"></div></div>78%</div></td></tr>
+        <tr><td>mediantlabs.com/contact-mediant-labs.html</td><td><span class="tag tag-e">Energy</span></td><td>18</td><td>18</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:78%;background:var(--orange)"></div></div>78%</div></td></tr>
+        <tr><td>linkedin.com/company/mediant-labs</td><td><span class="tag tag-e">Energy</span></td><td>18</td><td>20</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:87%;background:var(--orange)"></div></div>87%</div></td></tr>
+        <tr><td>bookings.cloud.microsoft (Douglas Calendar)</td><td><span class="tag tag-e">Energy</span></td><td>8</td><td>9</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:35%;background:var(--orange)"></div></div>35%</div></td></tr>
+        <tr><td>calendly.com/douglas-mediantlabs/new-meeting</td><td><span class="tag tag-e">Energy</span></td><td>15</td><td>16</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:65%;background:var(--orange)"></div></div>65%</div></td></tr>
+        <!-- MFG -->
+        <tr><td>mediantlabs.com/about-mediant-labs.html</td><td><span class="tag tag-m">Manufacturing</span></td><td>35</td><td>36</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:97%;background:var(--green)"></div></div>97%</div></td></tr>
+        <tr><td>mediantlabs.com/contact-mediant-labs.html</td><td><span class="tag tag-m">Manufacturing</span></td><td>34</td><td>37</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:92%;background:var(--green)"></div></div>92%</div></td></tr>
+        <tr><td>linkedin.com/company/mediant-labs</td><td><span class="tag tag-m">Manufacturing</span></td><td>35</td><td>36</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:97%;background:var(--green)"></div></div>97%</div></td></tr>
+        <tr><td>calendly.com/douglas-mediantlabs/new-meeting</td><td><span class="tag tag-m">Manufacturing</span></td><td>34</td><td>37</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:92%;background:var(--green)"></div></div>92%</div></td></tr>
+        <!-- MINING -->
+        <tr><td>mediantlabs.com/about-mediant-labs.html</td><td><span class="tag tag-mm">Metal &amp; Mining</span></td><td>9</td><td>9</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:100%;background:var(--gold)"></div></div>100%</div></td></tr>
+        <tr><td>mediantlabs.com/contact-mediant-labs.html</td><td><span class="tag tag-mm">Metal &amp; Mining</span></td><td>10</td><td>10</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:100%;background:var(--gold)"></div></div>100%</div></td></tr>
+        <tr><td>linkedin.com/company/mediant-labs</td><td><span class="tag tag-mm">Metal &amp; Mining</span></td><td>9</td><td>9</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:100%;background:var(--gold)"></div></div>100%</div></td></tr>
+        <tr><td>calendly.com/douglas-mediantlabs/new-meeting</td><td><span class="tag tag-mm">Metal &amp; Mining</span></td><td>10</td><td>10</td><td><div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:100%;background:var(--gold)"></div></div>100%</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section-title">Key Observations &amp; Recommendations</div>
+  <div class="insight-box">
+    <h3>💡 Strategic Insights — June 2026 Email Campaigns</h3>
+    <ul class="insight-list">
+      <li><strong>Metal &amp; Mining is the highest quality lead source</strong> — Despite the smallest list (317 sent), Mining produced 44 leads at a 13.88% lead conversion rate, far outpacing Energy (3.75%) and Manufacturing (4.30%). The safety-focused subject line is highly resonant with this audience.</li>
+      <li><strong>155 total leads generated across 2,983 emails sent</strong> — Blended lead rate of 5.2%. Manufacturing contributed the most in volume (86 leads), Mining the most in efficiency, and Energy the least in both.</li>
+      <li><strong>Mining's 47.27% open rate is the highest across all three</strong> — Safety and skills gap messaging is clearly compelling. Consider A/B testing a similar angle for the Energy audience in the next wave.</li>
+      <li><strong>Manufacturing has the best read quality (36% Read rate)</strong> — More than one-third of openers fully read the email. Energy and Mining audiences skim more — consider shorter, punchier copy for those segments.</li>
+      <li><strong>Unmailable contacts (285 combined) need immediate cleanup</strong> — 72 Energy + 194 Manufacturing + 19 Mining are blocked or bounced. These include hard bounces that permanently damage sender reputation if not removed before the next send.</li>
+      <li><strong>Unsubscribe numbers are heavy in Manufacturing (864) and Energy (310)</strong> — Combined 1,283 unsubscribes across 2,983 sends (43%). This signals list quality or relevance mismatch. Segment by job title and company size before the next campaign.</li>
+      <li><strong>Unopened contacts are the biggest re-engagement opportunity</strong> — 355 (Energy) + 1,224 (Manufacturing) + 164 (Mining) = 1,743 unopened. A follow-up with a different subject line targeting only this segment could unlock significant additional leads at near-zero cost.</li>
+      <li><strong>Calendly booking links perform consistently across all 3 campaigns</strong> — 15 unique clicks (Energy), 34 (Manufacturing), 10 (Mining). Consolidating MS Bookings (Energy, 8 clicks) into Calendly as the single CTA would reduce friction and improve meeting conversion tracking.</li>
+      <li><strong>Zero spam complaints across all 3 campaigns</strong> — 0.00% across 2,983 sends. Domain reputation is healthy. This headroom must be protected by resolving unmailables before the next campaign.</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">Mediant Labs — Pardot Email Campaign Report &nbsp;|&nbsp; Energy · Manufacturing · Metal &amp; Mining &nbsp;|&nbsp; June 2026 &nbsp;|&nbsp; Confidential</div>
+
+<script>
+// THEME
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  localStorage.setItem('ml-theme', document.body.classList.contains('light')?'light':'dark');
+  buildCharts();
+}
+if(localStorage.getItem('ml-theme')==='light') document.body.classList.add('light');
+
+// COUNTERS
+function animateCounters(){
+  document.querySelectorAll('[data-target]').forEach(el=>{
+    const target=parseFloat(el.dataset.target);
+    const dec=parseInt(el.dataset.dec||0);
+    const suffix=el.dataset.suffix||'';
+    let start=0;
+    const step=target/(1400/16);
+    const timer=setInterval(()=>{
+      start=Math.min(start+step,target);
+      el.textContent=start.toFixed(dec)+suffix;
+      if(start>=target){el.textContent=target.toFixed(dec)+suffix;clearInterval(timer);}
+    },16);
+  });
+}
+
+// CHARTS
+let charts={};
+function buildCharts(){
+  const G='#21a866',B='#2189bd',O='#f0883e',R='#f85149',P='#a371f7',Gold='#e3b341';
+  const isL=document.body.classList.contains('light');
+  const muted=isL?'#656d76':'#8b949e';
+  const tc=isL?'#1f2328':'#e6edf3';
+  const gc=isL?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.06)';
+  const bc=isL?'#fff':'#161b22';
+  Chart.defaults.color=tc;
+  Object.values(charts).forEach(c=>c.destroy());
+
+  // 1. Open Rate grouped bar
+  charts.openRate=new Chart(document.getElementById('openRateChart'),{
+    type:'bar',
+    data:{
+      labels:['⚡ Energy','🏭 Manufacturing','⛏ Metal & Mining'],
+      datasets:[
+        {label:'HTML Open Rate %',data:[46.37,37.68,47.27],backgroundColor:[O+'cc',G+'cc',Gold+'cc'],borderRadius:7,barThickness:42},
+        {label:'Click-to-Open %',data:[7.49,5.00,7.48],backgroundColor:[B+'99',B+'cc',B+'77'],borderRadius:7,barThickness:42}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:tc,font:{family:'Google Sans',size:11}}}},
+      scales:{x:{grid:{color:gc},ticks:{color:muted}},y:{grid:{color:gc},ticks:{color:muted,callback:v=>v+'%'},max:60}}
+    }
+  });
+
+  // 2. Lead rate bar
+  charts.leadRate=new Chart(document.getElementById('leadRateChart'),{
+    type:'bar',
+    data:{
+      labels:['⚡ Energy','🏭 Manufacturing','⛏ Metal & Mining'],
+      datasets:[
+        {label:'Leads Generated',data:[25,86,44],backgroundColor:[O+'cc',G+'cc',Gold+'cc'],borderRadius:7,barThickness:55},
+        {label:'Lead Rate % (of sent)',data:[3.75,4.30,13.88],backgroundColor:[O+'44',G+'44',Gold+'44'],borderRadius:7,barThickness:55,yAxisID:'y2'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:tc,font:{family:'Google Sans',size:11}}}},
+      scales:{
+        x:{grid:{color:gc},ticks:{color:muted}},
+        y:{grid:{color:gc},ticks:{color:muted},title:{display:true,text:'Leads #',color:muted,font:{size:10}}},
+        y2:{position:'right',grid:{drawOnChartArea:false},ticks:{color:muted,callback:v=>v+'%'},title:{display:true,text:'Lead %',color:muted,font:{size:10}}}
+      }
+    }
+  });
+
+  // 3. Volume funnel grouped
+  charts.volume=new Chart(document.getElementById('volumeChart'),{
+    type:'bar',
+    data:{
+      labels:['Sent','Delivered','Opened','Clicked','→ Lead'],
+      datasets:[
+        {label:'Energy',data:[667,662,307,23,25],backgroundColor:O+'bb',borderRadius:6,barThickness:30},
+        {label:'Manufacturing',data:[1999,1964,740,37,86],backgroundColor:G+'bb',borderRadius:6,barThickness:30},
+        {label:'Metal & Mining',data:[317,311,147,11,44],backgroundColor:Gold+'bb',borderRadius:6,barThickness:30}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:tc,font:{family:'Google Sans',size:11}}}},
+      scales:{x:{grid:{color:gc},ticks:{color:muted}},y:{grid:{color:gc},ticks:{color:muted}}}
+    }
+  });
+
+  // 4. Outcome donut combined
+  charts.outcome=new Chart(document.getElementById('outcomeChart'),{
+    type:'doughnut',
+    data:{
+      labels:['Opened & Engaged','Unopened','Unsubscribed','Unmailable','Leads Generated'],
+      datasets:[{data:[1194,1743,1283,285,155],backgroundColor:[G,R+'aa',R,P,Gold],borderWidth:2,borderColor:bc}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{position:'right',labels:{color:tc,font:{family:'Google Sans',size:11},padding:12,boxWidth:12}}}
+    }
+  });
+
+  // 5–7. Per-industry audience split donuts
+  const splitOpts=(border)=>({responsive:true,maintainAspectRatio:false,cutout:'60%',
+    plugins:{legend:{position:'bottom',labels:{color:tc,font:{family:'Google Sans',size:10},padding:8,boxWidth:10}}}
+  });
+
+  charts.splitE=new Chart(document.getElementById('splitEnergy'),{
+    type:'doughnut',
+    data:{labels:['Opened','Unopened','Unsubscribed','Unmailable','Lead'],datasets:[{data:[307,355,310,72,25],backgroundColor:[G,R+'99',R,P,Gold],borderWidth:2,borderColor:bc}]},
+    options:splitOpts(bc)
+  });
+  charts.splitM=new Chart(document.getElementById('splitMfg'),{
+    type:'doughnut',
+    data:{labels:['Opened','Unopened','Unsubscribed','Unmailable','Lead'],datasets:[{data:[740,1224,864,194,86],backgroundColor:[G,R+'99',R,P,Gold],borderWidth:2,borderColor:bc}]},
+    options:splitOpts(bc)
+  });
+  charts.splitMi=new Chart(document.getElementById('splitMining'),{
+    type:'doughnut',
+    data:{labels:['Opened','Unopened','Unsubscribed','Unmailable','Lead'],datasets:[{data:[147,164,109,19,44],backgroundColor:[G,R+'99',R,P,Gold],borderWidth:2,borderColor:bc}]},
+    options:splitOpts(bc)
+  });
+}
+
+// EXPORT
+function exportPNG(){
+  html2canvas(document.body,{backgroundColor:null,scale:1.5}).then(canvas=>{
+    const a=document.createElement('a');
+    a.download='mediant-labs-email-report-june2026.png';
+    a.href=canvas.toDataURL();a.click();
+  });
+}
+
+window.addEventListener('load',()=>{animateCounters();buildCharts();});
+</script>
+</body>
+</html>
